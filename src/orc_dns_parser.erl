@@ -2,7 +2,7 @@
 -author({ "David J Goehrig", "dave@dloh.org" }).
 -copyright(<<"© 2017 David J Goehrig"/utf8>>).
 
--export([ message/1, cname/1, a/1, aaaa/1, mx/1, soa/1, txt/1, ns/1, wks/1, hinfo/1, ptr/1 ]).
+-export([ message/1, cname/1, a/1, aaaa/1, mx/1, soa/1, txt/1, ns/1, wks/1, hinfo/1, ptr/1, test/0 ]).
 
 -record(dns_header, { id, type, opcode, 
 	authoritative, truncated, desired, available, error, 
@@ -288,7 +288,7 @@ label(<<1,1, Offset:14/big-unsigned-integer, Rest/binary>>, Acc, Message ) ->
 	{ Label, _ } = label(binary:part(Message,Offset, binary:referenced_byte_size(Message) - Offset), Acc, Message ),
 	{ Label, Rest };
 %% literal string
-label(<<0,0,Count:6, String:Count/binary, Rest/binary>>,Acc,Message) ->
+label(<<0:2,Count:6/big-unsigned-integer, String:Count/binary, Rest/binary>>,Acc,Message) ->
 	label(Rest,[ String | Acc ],Message).
 
 label(Bin,Message) ->
@@ -310,8 +310,9 @@ rcode(4) -> not_implemented;
 rcode(5) -> refused;
 rcode(_) -> reserved.
 
-header(<<Id:16/big-unsigned-integer, Query:1, Opcode:4, 
-	AA:1, Truncated:1, RecursionDesired:1, RecursionAvailable:1, 0:1, RCode:4,  
+header(<<Id:16/big-unsigned-integer, 
+	Query:1, Opcode:4/integer, AA:1, Truncated:1, RecursionDesired:1, 
+	RecursionAvailable:1, _Z:3, RCode:4/integer,  
 	QDCount:16/big-unsigned-integer,	%% # questions
 	ANCount:16/big-unsigned-integer,	%% # answers
 	NSCount:16/big-unsigned-integer,	%% # authority
@@ -362,3 +363,8 @@ message(Message) ->
 	{ Authority, R4} = answer(R3,Header#dns_header.authorities,[],Message),
 	{ Additional, Rest} = answer(R4,Header#dns_header.additional,[],Message),
 	{ Header, Question, Answer, Authority, Additional, Rest }.
+
+
+test() ->
+	message(<<58,103,1,32,0,1,0,0,0,0,0,1,3,102,111,111,5,108,111,99,97,108,0,0,
+             1,0,1,0,0,41,16,0,0,0,0,0,0,0>>).
