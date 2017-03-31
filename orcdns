@@ -1,0 +1,78 @@
+#!/usr/bin/env escript
+%% -*- erlang -*-
+%%! -pa $(dirname 0)/ebin -noshell -noinput
+%%
+%% Copyright 2017 David J. Goehrig <dave@dloh.org>
+
+%% starts a local node to issue commands from
+%% we name these sequentially with system time
+%% to avoid colliding with other command processes
+
+
+process(Server,["node"]) ->
+	process_flag(trap_exit,true),
+	{ ok, _Pid } = net_kernel:start([ Server, shortnames ]),
+	io:format("Starting ~p ", [Server]),
+	green(ok),
+	eol(),
+	set_cookie(),
+	receive
+		'EXIT' -> 
+			io:format("done~n"),
+			erlang:halt(0)
+	end;
+
+process(Server,[ "status" ]) ->
+	io:format("~p: ", [ Server ]),
+	case connect(Server) of
+		ok -> green(ok);
+		_ -> red(fail)
+	end,
+	eol();	
+
+process(_Server,_) ->
+	io:format("Usage: orcdns [ help ]~n").
+
+connect(Server) ->
+	net_kernel:start([ list_to_atom("cmd" ++ integer_to_list(erlang:system_time()) ++ "@localhost"), shortnames ]),
+	set_cookie(),
+	case net_kernel:connect(Server) of
+		false -> 
+			io:format("Failed to connect to ~p~n", [ Server ]),
+			erlang:halt(0);
+		true -> ok
+	end.
+
+eol() ->
+	io:format("~n").
+
+green(Term) ->
+	io:format([ 16#1b | "[;32m"]),
+	io:format("~p", [ Term ]),
+	io:format([ 16#1b | "[;39m" ]).
+
+red(Term) ->
+	io:format([ 16#1b | "[;31m"]),
+	io:format("~p", [ Term ]),
+	io:format([ 16#1b | "[;39m" ]).
+
+set_cookie() ->
+	case application:get_env(orcdns,cookie) of
+		{ ok, Cookie } ->
+			erlang:set_cookie(node(),Cookie);
+		_ ->
+			ok
+	end.
+
+find_server([]) -> 
+	{ orcdns@localhost, []};
+find_server(Args = [ Host | Args2 ]) ->
+	case string:chr(Host,$@) of
+		0 -> { orcdns@localhost, Args };
+		_ -> { list_to_atom(Host), Args2 }
+	end.
+
+main(Args) ->
+	{ Host, Args2 } = find_server(Args),
+	process(Host,Args2).
+	

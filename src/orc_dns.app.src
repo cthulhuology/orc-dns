@@ -1,0 +1,23 @@
+{application, orc_dns, [
+	{description, "Open Robotics Company DNS Server" },
+	{vsn, "1"},
+	{registered, []},
+	{applications, [
+		kernel,
+		stdlib,
+		crypto,
+		asn1,
+		public_key,
+		ssl
+	]},
+	{ modules, [ 
+		orc_dns_app,
+		orc_dns_sup,
+		orc_dns_message,
+		orc_dns_parser,
+		orc_dns_server
+	]},
+	{mod, { orc_dns_app, []}},
+	{env, [
+	]}
+]}.

@@ -4,11 +4,7 @@
 
 -export([ message/1, cname/1, a/1, aaaa/1, mx/1, soa/1, txt/1, ns/1, wks/1, hinfo/1, ptr/1, test/0 ]).
 
--record(dns_header, { id, type, opcode, 
-	authoritative, truncated, desired, available, error, 
-	questions, answers, authorities, additional }).
--record(dns_question, { name, type, class }).
--record(dns_answer, { name, type, class, ttl, data }).
+-include("../include/orc_dns.hrl").
 
 %% for reference https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml
 %%

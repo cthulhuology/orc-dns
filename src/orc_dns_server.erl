@@ -5,14 +5,7 @@
 -export([ start_link/0, stop/0 ]).
 -export([ init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3 ]).
 
--record( orc_dns_server, { socket }).
--record(dns_header, { id, type, opcode, 
-	authoritative, truncated, desired, available, error, 
-	questions, answers, authorities, additional }).
--record(dns_question, { name, type, class }).
--record(dns_answer, { name, type, class, ttl, data }).
-
-
+-include("../include/orc_dns.hrl").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% public
