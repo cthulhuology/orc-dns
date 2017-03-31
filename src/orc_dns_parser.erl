@@ -2,7 +2,7 @@
 -author({ "David J Goehrig", "dave@dloh.org" }).
 -copyright(<<"© 2017 David J Goehrig"/utf8>>).
 
--export([ message/1, cname/1, a/1, aaaa/1, mx/1, soa/1, txt/1, ns/1, wks/1, hinfo/1, ptr/1, test/0 ]).
+-export([ prefix/1, message/1, cname/1, a/1, aaaa/1, mx/1, soa/1, txt/1, ns/1, wks/1, hinfo/1, ptr/1, test/0 ]).
 
 -include("../include/orc_dns.hrl").
 
@@ -345,12 +345,26 @@ answer(Bin,Count,Acc,Message) ->
 	{ Name, Rest } = label(Bin,Message),
 	<< Type:16/big-unsigned-integer, Class:16/big-unsigned-integer, TTL:32/big-unsigned-integer,
 	RDLength:16/big-unsigned-integer, RData:RDLength/binary, Next/binary>> = Rest,
-	answer( Next, Count - 1, [ #dns_answer{
-		name = Name,
-		type = record_type(Type),
-		class = class(Class),
-		ttl = TTL,
-		data = RData } | Acc ],Message).
+	case record_type(Type) of
+	opt -> 
+		answer( Next, Count - 1, [ #dns_answer{
+			name = Name,
+			type = record_type(Type),
+			class = edns,
+			udpsize = Class,
+			ttl = TTL,
+			data = RData } | Acc ],Message);
+	_ ->
+		answer( Next, Count - 1, [ #dns_answer{
+			name = Name,
+			type = record_type(Type),
+			class = class(Class),
+			ttl = TTL,
+			data = RData } | Acc ],Message)
+	end.
+
+prefix(<< Length:16/big-unsigned-integer, Message:Length/binary, Rest/binary>>) ->
+	{ Message, Rest }.
 
 message(Message) ->
 	{ Header, R1} = header(Message),
