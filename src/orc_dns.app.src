@@ -11,6 +11,7 @@
 		ssl
 	]},
 	{ modules, [ 
+		orcdns,
 		orc_dns_app,
 		orc_dns_sup,
 		orc_dns_message,

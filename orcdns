@@ -22,6 +22,14 @@ process(Server,["node"]) ->
 			erlang:halt(0)
 	end;
 
+process(Server,["start"]) ->
+	process(Server,[ "start", "53" ]);
+process(Server,["start", Port]) ->
+	ok = connect(Server),
+	rpc:call(Server,application,set_env,[orcdns,port,list_to_integer(Port)]),
+	rpc:call(Server,application,load,[orc_dns]),
+	rpc:call(Server,orcdns,start,[]);
+
 process(Server,[ "status" ]) ->
 	io:format("~p: ", [ Server ]),
 	case connect(Server) of

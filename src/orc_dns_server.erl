@@ -24,7 +24,9 @@ stop() ->
 %%
 
 init(Server = #orc_dns_server{}) ->
-	{ ok, Socket } = gen_udp:open(53, [ binary, { active, true }]),
+	{ ok, Port } = application:get_env(orcdns,port),
+	{ ok, Socket } = gen_udp:open(Port, [ binary, { active, true }]),
+	error_logger:info_msg("Listening on ~p~n", [ Port ]),
 	{ ok, Server#orc_dns_server{ socket = Socket } }.
 
 handle_call(stop,_From,Server) ->
